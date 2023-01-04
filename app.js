@@ -31,7 +31,7 @@ app.post("/api/pokemons", (req, res) => {
 
 // After all other routes
 app.get('*', (req, res) => {
-  res.sendFile('index.html', { root: __dirname })
+  res.sendFile('dist/index.html', { root: __dirname })
 });
 
 const port = process.env.PORT || 8080
