@@ -1,7 +1,10 @@
 const express = require("express");
 const app = express();
 
-app.use(express.json())
+// Before the other routes
+app.use(express.static("dist"));
+
+app.use(express.json());
 
 const pokemons = [
   {
@@ -24,7 +27,13 @@ app.post("/api/pokemons", (req, res) => {
   data.id = pokemons.length+1
   pokemons.push(data)
   res.send(data)
-})
+});
+
+// After all other routes
+app.get('*', (req, res) => {
+  res.sendFile('dist/index.html')
+});
 
 const port = process.env.PORT || 8080
 app.listen(port, () => console.log(`listening on port ${port}`))
+
