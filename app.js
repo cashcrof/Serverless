@@ -3,7 +3,7 @@ const app = express();
 
 // Before the other routes
 app.use(express.static("dist"));
-
+app.use(express.urlencoded({extended:false}));
 app.use(express.json());
 
 const pokemons = [
@@ -22,9 +22,11 @@ app.get("/api/pokemons", (req, res) => {
 });
 
 app.post("/api/pokemons", (req, res) => {
-  const data = req.body
+  const data = req.body;
+  console.log(data);
   console.log("POST /api/pokemons", data)
   data.id = pokemons.length+1
+  
   pokemons.push(data)
   res.send(data)
 });
