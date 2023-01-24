@@ -1,41 +1,38 @@
 const express = require("express");
+const database = require("./database");
+const fs = require("fs");
+const multer = require("multer");
+const upload = multer({ dest: "images/" });
 const app = express();
+require("dotenv").config();
 
 // Before the other routes
 app.use(express.static("dist"));
-app.use(express.urlencoded({extended:false}));
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-const pokemons = [
-  {
-    id: 1,
-    name: "Pikachu",
-    type: "electric ⚡️",
-    level: 99,
-    image: "/pikachu.webp"
-  }
-]
+app.get("/images/:imageName", (req, res) => {
+  // do a bunch of if statements to make sure the user is
+  // authorized to view this image, then
 
-app.get("/api/pokemons", (req, res) => {
-  console.log("GET /api/pokemons")
-  res.send({pokemons: pokemons})
+  const imageName = req.params.imageName;
+  const readStream = fs.createReadStream(`images/${imageName}`);
+  readStream.pipe(res);
 });
 
-app.post("/api/pokemons", (req, res) => {
-  const data = req.body;
-  console.log(data);
-  console.log("POST /api/pokemons", data)
-  data.id = pokemons.length+1
-  
-  pokemons.push(data)
-  res.send(data)
+app.get("/api/images", (req, res) => {
+  const images = database.getImages();
+  res.send({ images });
 });
 
-// After all other routes
-app.get('*', (req, res) => {
-  res.sendFile('dist/index.html', { root: __dirname })
+app.post("/api/images", upload.single("image"), (req, res) => {
+  const imagePath = req.file.path;
+  const description = req.body.description;
+  database.addImage(imagePath, description);
+
+  console.log(description, imagePath);
+  res.send({ description, imagePath });
 });
 
-const port = process.env.PORT || 8080
-app.listen(port, () => console.log(`listening on port ${port}`))
-
+const port = process.env.PORT || 8080;
+app.listen(port, () => console.log(`listening on port ${port}`));
