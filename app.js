@@ -2,8 +2,12 @@ const express = require("express");
 const database = require("./database");
 const fs = require("fs");
 const multer = require("multer");
-const upload = multer({ dest: "images/" });
+const storage = multer.memoryStorage()
+const upload = multer({ storage: storage })
 const app = express();
+const crypto = require("crypto");
+const generateFileName = (bytes = 32) => crypto.randomBytes(bytes).toString('hex')
+
 require("dotenv").config();
 
 // Before the other routes
@@ -25,14 +29,22 @@ app.get("/api/images", (req, res) => {
   res.send({ images });
 });
 
-app.post("/api/images", upload.single("image"), (req, res) => {
-  const imagePath = req.file.path;
-  const description = req.body.description;
-  database.addImage(imagePath, description);
+app.post("/api/images", upload.single('image'), async (req, res) => {
+  // Get the data from the post request
+  const description = req.body.description
+  const fileBuffer = req.file.buffer
+  const mimetype = req.file.mimetype
+  const fileName = generateFileName();
 
-  console.log(description, imagePath);
-  res.send({ description, imagePath });
-});
+  // Store the image in s3
+  const s3Result = await s3.uploadImage(fileBuffer, fileName, mimetype)
+
+  // Store the image in the database
+  const databaseResult = await database.addImage(fileName, description)
+
+  res.status(201).send(result)
+})
+
 
 const port = process.env.PORT || 8080;
 app.listen(port, () => console.log(`listening on port ${port}`));
