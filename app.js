@@ -1,6 +1,5 @@
 const express = require("express");
 const database = require("./database");
-const s3 = require("./s3");
 const fs = require("fs");
 const multer = require("multer");
 const upload = multer({ dest: "images/" });
